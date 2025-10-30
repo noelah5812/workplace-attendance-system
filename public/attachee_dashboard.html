@@ -1,91 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Attachee Dashboard | Workplace Attendance System</title>
+  <meta charset="UTF-8" />
+  <title>Attachee Dashboard</title>
   <link rel="stylesheet" href="style.css" />
   <style>
     body {
-      background: linear-gradient(135deg, #0099ff, #00cc88);
+      background: #f5f7fa;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
       margin: 0;
-      color: #222;
+      padding: 0;
     }
 
-    .dashboard-container {
-      max-width: 900px;
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
       background: #fff;
-      margin: 3rem auto;
-      border-radius: 14px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      overflow: hidden;
-      animation: fadeIn 0.7s ease;
-    }
-
-    header {
-      background: #007BFF;
-      color: white;
-      text-align: center;
-      padding: 1rem 0;
-      font-size: 1.5rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-    }
-
-    .content {
       padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
     h2 {
       text-align: center;
-      color: #007BFF;
-      margin-bottom: 1rem;
-    }
-
-    .info {
-      text-align: center;
+      color: #007bff;
       margin-bottom: 1.5rem;
     }
 
-    .info p {
-      margin: 6px 0;
-      font-size: 1rem;
-      color: #333;
-    }
-
-    .actions {
+    .button-group {
       display: flex;
       justify-content: center;
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
 
-    .actions button {
-      padding: 0.8rem 1.5rem;
+    button {
+      padding: 12px 20px;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
+      background: #007bff;
       color: white;
-      background: #007BFF;
-      transition: background 0.3s ease;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
     }
 
-    .actions button:hover {
+    button:hover {
       background: #0056b3;
     }
 
-    .logout-btn {
+    .btn-logout {
       background: #e74c3c;
     }
 
-    .logout-btn:hover {
+    .btn-logout:hover {
       background: #c0392b;
     }
 
-    .records {
-      margin-top: 2rem;
+    .message {
+      text-align: center;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      display: none;
+      font-weight: 500;
     }
+
+    .message.success { background: #d4edda; color: #155724; }
+    .message.error { background: #f8d7da; color: #721c24; }
 
     table {
       width: 100%;
@@ -94,144 +77,133 @@
     }
 
     th, td {
+      padding: 10px;
       border: 1px solid #ddd;
       text-align: center;
-      padding: 10px;
     }
 
     th {
-      background: #007BFF;
+      background: #007bff;
       color: white;
-      font-weight: 600;
     }
 
     tr:nth-child(even) td {
-      background: #f7f9fc;
-    }
-
-    .message {
-      text-align: center;
-      margin-top: 1rem;
-      padding: 10px;
-      border-radius: 8px;
-      display: none;
-    }
-
-    .success { background: #d4edda; color: #155724; }
-    .error { background: #f8d7da; color: #721c24; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
+      background: #f9f9f9;
     }
   </style>
 </head>
 <body>
-  <div class="dashboard-container">
-    <header>Attachee Dashboard</header>
-    <div class="content">
-      <h2>Welcome to Your Attendance Portal</h2>
-      <div class="info" id="user-info">
-        <p><strong>Name:</strong> <span id="user-name">Loading...</span></p>
-        <p><strong>Role:</strong> <span id="user-role">Loading...</span></p>
-      </div>
+  <div class="container">
+    <h2>Welcome, Attachee!</h2>
 
-      <div class="actions">
-        <button id="checkin-btn">Check In</button>
-        <button id="checkout-btn">Check Out</button>
-        <button class="logout-btn" id="logout-btn">Logout</button>
-      </div>
-
-      <div class="message" id="status-message"></div>
-
-      <div class="records">
-        <h3>Your Attendance Records</h3>
-        <table id="attendance-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Check-In</th>
-              <th>Check-Out</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="4">No attendance records yet.</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="button-group">
+      <button id="checkin-btn">Check In</button>
+      <button id="checkout-btn">Check Out</button>
+      <button class="btn-logout" id="logout-btn">Logout</button>
     </div>
+
+    <div id="message" class="message"></div>
+
+    <h3>Your Attendance Records</h3>
+    <table id="attendance-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Check-In</th>
+          <th>Check-Out</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="4">No records yet.</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <script>
-    const user = JSON.parse(localStorage.getItem('user'));
-    const tableBody = document.querySelector('#attendance-table tbody');
-    const messageBox = document.getElementById('status-message');
-    let attendance = JSON.parse(localStorage.getItem('attendance')) || [];
+    const checkInBtn = document.getElementById("checkin-btn");
+    const checkOutBtn = document.getElementById("checkout-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const message = document.getElementById("message");
+    const attendanceTable = document.querySelector("#attendance-table tbody");
 
-    // Display user info
-    if (user) {
-      document.getElementById('user-name').textContent = user.name;
-      document.getElementById('user-role').textContent = user.role;
-    } else {
-      window.location.href = 'login.html';
+    let user = JSON.parse(localStorage.getItem("user"));
+    let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
+
+    if (!user) {
+      window.location.href = "login.html";
     }
 
-    function showMessage(msg, type) {
-      messageBox.textContent = msg;
-      messageBox.className = `message ${type}`;
-      messageBox.style.display = 'block';
-      setTimeout(() => messageBox.style.display = 'none', 3000);
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = `message ${type}`;
+      message.style.display = "block";
+      setTimeout(() => (message.style.display = "none"), 3000);
     }
 
     function renderAttendance() {
-      const userRecords = attendance.filter(r => r.name === user.name);
-      if (userRecords.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="4">No attendance records yet.</td></tr>';
+      const records = attendance.filter(r => r.name === user.name);
+      if (records.length === 0) {
+        attendanceTable.innerHTML = `<tr><td colspan="4">No records yet.</td></tr>`;
         return;
       }
-      tableBody.innerHTML = userRecords.map(record => `
+
+      attendanceTable.innerHTML = records.map(r => `
         <tr>
-          <td>${record.date}</td>
-          <td>${record.checkIn || '-'}</td>
-          <td>${record.checkOut || '-'}</td>
-          <td>${record.status}</td>
+          <td>${r.date}</td>
+          <td>${r.checkIn || "-"}</td>
+          <td>${r.checkOut || "-"}</td>
+          <td>${r.status}</td>
         </tr>
-      `).join('');
+      `).join("");
     }
 
-    document.getElementById('checkin-btn').addEventListener('click', () => {
-      const today = new Date().toISOString().split('T')[0];
+    checkInBtn.addEventListener("click", () => {
+      const today = new Date().toISOString().split("T")[0];
       const time = new Date().toLocaleTimeString();
       let record = attendance.find(r => r.name === user.name && r.date === today);
-      if (record && record.checkIn) return showMessage('You already checked in today.', 'error');
+
+      if (record && record.checkIn) {
+        showMessage("Already checked in today.", "error");
+        return;
+      }
 
       if (!record) {
-        record = { name: user.name, date: today, checkIn: time, checkOut: '', status: 'Present' };
+        record = { name: user.name, date: today, checkIn: time, checkOut: "", status: "Present" };
         attendance.push(record);
-      } else record.checkIn = time;
+      } else {
+        record.checkIn = time;
+      }
 
-      localStorage.setItem('attendance', JSON.stringify(attendance));
-      showMessage(`Checked in at ${time}.`, 'success');
+      localStorage.setItem("attendance", JSON.stringify(attendance));
+      showMessage("Checked in successfully!", "success");
       renderAttendance();
     });
 
-    document.getElementById('checkout-btn').addEventListener('click', () => {
-      const today = new Date().toISOString().split('T')[0];
+    checkOutBtn.addEventListener("click", () => {
+      const today = new Date().toISOString().split("T")[0];
       const time = new Date().toLocaleTimeString();
-      const record = attendance.find(r => r.name === user.name && r.date === today);
-      if (!record || !record.checkIn) return showMessage('Please check in first.', 'error');
-      if (record.checkOut) return showMessage('You already checked out today.', 'error');
+      let record = attendance.find(r => r.name === user.name && r.date === today);
+
+      if (!record || !record.checkIn) {
+        showMessage("Please check in first.", "error");
+        return;
+      }
+
+      if (record.checkOut) {
+        showMessage("Already checked out.", "error");
+        return;
+      }
 
       record.checkOut = time;
-      localStorage.setItem('attendance', JSON.stringify(attendance));
-      showMessage(`Checked out at ${time}.`, 'success');
+      localStorage.setItem("attendance", JSON.stringify(attendance));
+      showMessage("Checked out successfully!", "success");
       renderAttendance();
     });
 
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      localStorage.removeItem('user');
-      window.location.href = 'login.html';
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("user");
+      window.location.href = "login.html";
     });
 
     renderAttendance();
