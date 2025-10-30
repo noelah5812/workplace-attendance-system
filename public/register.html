@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Full-screen loader styling */
+    .loader-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s, opacity 0.3s ease;
+    }
+
+    .loader-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid #ddd;
+      border-top-color: #007BFF;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loader-text {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #007BFF;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Register</h2>
+    <form id="register-form">
+      <input type="text" id="new-username" placeholder="Username" required />
+      <input type="password" id="new-password" placeholder="Password" required />
+      <select id="new-role" required>
+        <option value="">Select Role</option>
+        <option value="attachee">Attachee</option>
+        <option value="intern">Intern</option>
+        <option value="staff">Staff</option>
+        <option value="hr">HR</option>
+      </select>
+      <button type="submit">Register</button>
+    </form>
+    <div id="register-message" style="margin-top: 10px; text-align:center;"></div>
+    <div class="footer-link">
+      Already have an account? <a href="login.html">Login here</a>
+    </div>
+  </div>
+
+  <!-- Loader Overlay -->
+  <div class="loader-overlay" id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text">Processing your registration...</div>
+  </div>
+
+  <script>
+    const form = document.getElementById('register-form');
+    const msg = document.getElementById('register-message');
+    const loader = document.getElementById('loader');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('new-username').value.trim();
+      const password = document.getElementById('new-password').value.trim();
+      const role = document.getElementById('new-role').value;
+
+      if (!username || !password || !role) {
+        msg.textContent = '⚠️ Please fill in all fields.';
+        msg.style.color = 'red';
+        return;
+      }
+
+      let users = JSON.parse(localStorage.getItem('users')) || [];
+
+      if (users.find(u => u.username === username)) {
+        msg.textContent = '❌ Username already exists.';
+        msg.style.color = 'red';
+        return;
+      }
+
+      // Show loader
+      loader.classList.add('active');
+
+      setTimeout(() => {
+        users.push({ username, password, role });
+        localStorage.setItem('users', JSON.stringify(users));
+        loader.classList.remove('active');
+        msg.textContent = '✅ Registration successful!';
+        msg.style.color = 'green';
+
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1000);
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

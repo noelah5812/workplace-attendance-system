@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 3rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2, h3 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      margin-bottom: 2rem;
+    }
+
+    input, select, button {
+      padding: 0.6rem;
+      margin: 0.5rem 0;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .delete-btn {
+      background-color: #dc3545;
+    }
+
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .logout-btn {
+      background-color: #dc3545;
+      margin-top: 2rem;
+      width: 100%;
+    }
+
+    .alert {
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 5px;
+      text-align: center;
+      display: none;
+    }
+
+    .alert.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .alert.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>HR Admin Dashboard</h2>
+
+    <section>
+      <h3>Add New User</h3>
+      <form id="add-user-form">
+        <input type="text" id="new-username" placeholder="Username" required />
+        <input type="password" id="new-password" placeholder="Password" required />
+        <select id="new-role" required>
+          <option value="">Select Role</option>
+          <option value="Intern">Intern</option>
+          <option value="Attachee">Attachee</option>
+          <option value="Staff">Staff</option>
+        </select>
+        <button type="submit">Add User</button>
+      </form>
+      <div id="admin-message" class="alert"></div>
+    </section>
+
+    <section>
+      <h3>Existing Users</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="user-list">
+          <tr><td colspan="3">No users yet.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    const userList = document.getElementById('user-list');
+    const form = document.getElementById('add-user-form');
+    const messageDiv = document.getElementById('admin-message');
+
+    // Get users from localStorage or initialize as empty array
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+
+    function showMessage(msg, type = 'success') {
+      messageDiv.textContent = msg;
+      messageDiv.className = `alert ${type}`;
+      messageDiv.style.display = 'block';
+      setTimeout(() => messageDiv.style.display = 'none', 3000);
+    }
+
+    function renderUsers() {
+      userList.innerHTML = '';
+
+      if (users.length === 0) {
+        userList.innerHTML = '<tr><td colspan="3">No users yet.</td></tr>';
+        return;
+      }
+
+      users.forEach((user, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.role}</td>
+          <td><button class="btn delete-btn" onclick="deleteUser(${index})">Delete</button></td>
+        `;
+        userList.appendChild(row);
+      });
+    }
+
+    function deleteUser(index) {
+      users.splice(index, 1);
+      localStorage.setItem('users', JSON.stringify(users));
+      renderUsers();
+      showMessage('User deleted successfully.', 'success');
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('new-username').value.trim();
+      const password = document.getElementById('new-password').value;
+      const role = document.getElementById('new-role').value;
+
+      if (!username || !password || !role) {
+        showMessage('All fields are required.', 'error');
+        return;
+      }
+
+      const existingUser = users.find(user => user.username === username);
+      if (existingUser) {
+        showMessage('Username already exists.', 'error');
+        return;
+      }
+
+      users.push({ username, password, role });
+      localStorage.setItem('users', JSON.stringify(users));
+      renderUsers();
+      form.reset();
+      showMessage('User added successfully!', 'success');
+    });
+
+    function logout() {
+      alert('Logging out...');
+      // Redirect or clear session here
+    }
+
+    // Initial render
+    renderUsers();
+  </script>
+</body>
+</html>

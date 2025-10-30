@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Attendance Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #007bff;
+      --danger: #e74c3c;
+      --success: #28a745;
+      --bg: #f5f8fc;
+      --card-bg: #fff;
+      --text: #2c3e50;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: var(--bg);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 1.5rem;
+    }
+    header button {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    header button:hover {
+      background: #c0392b;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 2rem;
+    }
+
+    .calendar {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    h2, h3 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+    }
+
+    /* Cards */
+    .top-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-align: center;
+      transition: transform 0.3s;
+    }
+    .card:hover { transform: translateY(-5px); }
+    .card i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+    .card-title {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+    .card-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    /* Inputs and Buttons */
+    label { display: block; margin-top: 1rem; font-weight: 600; }
+    input, select, button {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      transition: 0.3s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--primary); }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { background: #0056b3; }
+
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #c0392b; }
+
+    /* Buttons Row */
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    .button-group button {
+      flex: 1;
+      padding: 0.8rem;
+      font-size: 1.05rem;
+    }
+
+    /* Messages */
+    .message-box {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .error   { background: #f8d7da; color: #721c24; }
+    .info    { background: #cce5ff; color: #004085; }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.5rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background: var(--primary);
+      color: white;
+    }
+    tr:nth-child(even) td {
+      background: #f9f9f9;
+    }
+
+    @media (max-width: 600px) {
+      .button-group { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fa-solid fa-user-clock"></i> Attendance Dashboard</h1>
+    <button id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </header>
+
+  <div class="container">
+    <div class="calendar" id="calendar-display">Loading date...</div>
+
+    <div class="top-cards">
+      <div class="card">
+        <i class="fa-solid fa-door-open"></i>
+        <div class="card-title">Checked In Today</div>
+        <div class="card-value" id="card-checkin-count">0</div>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-door-closed"></i>
+        <div class="card-title">Checked Out Today</div>
+        <div class="card-value" id="card-checkout-count">0</div>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-list"></i>
+        <div class="card-title">Total Records</div>
+        <div class="card-value" id="card-total-records">0</div>
+      </div>
+    </div>
+
+    <section id="user-info">
+      <h3>Your Details</h3>
+      <label>Full Name:</label>
+      <input type="text" id="full-name" placeholder="Enter your name" required>
+
+      <label>Gender:</label>
+      <select id="gender">
+        <option value="">--Select Gender--</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+      </select>
+
+      <label>Role:</label>
+      <select id="role">
+        <option value="">--Select Role--</option>
+        <option>Attachee</option>
+        <option>Intern</option>
+        <option>Staff</option>
+      </select>
+
+      <button id="save-user-info"><i class="fa-solid fa-save"></i> Save Info</button>
+      <div id="saved-message" class="message-box info"></div>
+    </section>
+
+    <section class="actions">
+      <h3>Attendance Actions</h3>
+      <div class="button-group">
+        <button id="checkin-btn"><i class="fa-solid fa-sign-in-alt"></i> Check In</button>
+        <button id="checkout-btn"><i class="fa-solid fa-sign-out-alt"></i> Check Out</button>
+      </div>
+      <div id="attendance-message" class="message-box"></div>
+    </section>
+
+    <section class="records">
+      <h3>Your Attendance Records</h3>
+      <table id="attendance-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="5">No records yet.</td></tr></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const fullNameInput = document.getElementById("full-name");
+    const genderSelect = document.getElementById("gender");
+    const roleSelect = document.getElementById("role");
+    const saveBtn = document.getElementById("save-user-info");
+    const savedMessage = document.getElementById("saved-message");
+    const checkInBtn = document.getElementById("checkin-btn");
+    const checkOutBtn = document.getElementById("checkout-btn");
+    const attendanceMsg = document.getElementById("attendance-message");
+    const attendanceTableBody = document.querySelector("#attendance-table tbody");
+    const calendarDisplay = document.getElementById("calendar-display");
+    const logoutBtn = document.getElementById("logout-btn");
+    const cardCheckinCount = document.getElementById("card-checkin-count");
+    const cardCheckoutCount = document.getElementById("card-checkout-count");
+    const cardTotalRecords = document.getElementById("card-total-records");
+
+    let user = JSON.parse(localStorage.getItem("user")) || null;
+    let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
+
+    // Date Display
+    function updateCalendar() {
+      const today = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      calendarDisplay.textContent = today.toLocaleDateString(undefined, options);
+    }
+    updateCalendar();
+
+    // Messages
+    function showMessage(el, msg, type = "info") {
+      el.textContent = msg;
+      el.className = `message-box ${type}`;
+      el.style.display = "block";
+      setTimeout(() => el.style.display = "none", 3000);
+    }
+
+    // Load saved user
+    if (user) {
+      fullNameInput.value = user.name;
+      genderSelect.value = user.gender;
+      roleSelect.value = user.role;
+    }
+
+    // Save user info
+    saveBtn.addEventListener("click", () => {
+      const name = fullNameInput.value.trim();
+      const gender = genderSelect.value;
+      const role = roleSelect.value;
+      if (!name || !gender || !role) return showMessage(savedMessage, "⚠️ Fill all fields.", "error");
+      user = { name, gender, role };
+      localStorage.setItem("user", JSON.stringify(user));
+      showMessage(savedMessage, "✅ Info saved!", "success");
+      renderAttendance();
+    });
+
+    // Render attendance
+    function renderAttendance() {
+      const userRecords = user ? attendance.filter(r => r.name === user.name) : [];
+      attendanceTableBody.innerHTML = userRecords.length
+        ? userRecords.map(r => `
+          <tr>
+            <td>${r.date}</td>
+            <td>${r.checkIn || "-"}</td>
+            <td>${r.checkOut || "-"}</td>
+            <td>${r.status}</td>
+            <td>${r.notes || "-"}</td>
+          </tr>`).join("")
+        : `<tr><td colspan="5">No records yet.</td></tr>`;
+      updateCards();
+    }
+
+    // Update dashboard cards
+    function updateCards() {
+      const today = new Date().toISOString().split("T")[0];
+      const todayRecords = attendance.filter(r => r.date === today);
+      cardCheckinCount.textContent = todayRecords.filter(r => r.checkIn).length;
+      cardCheckoutCount.textContent = todayRecords.filter(r => r.checkOut).length;
+      cardTotalRecords.textContent = attendance.length;
+    }
+
+    // Check In
+    checkInBtn.addEventListener("click", () => {
+      if (!user) return showMessage(attendanceMsg, "Save your info first.", "error");
+      const today = new Date().toISOString().split("T")[0];
+      const time = new Date().toLocaleTimeString();
+      let record = attendance.find(r => r.name === user.name && r.date === today);
+      if (record && record.checkIn) return showMessage(attendanceMsg, "Already checked in.", "info");
+      if (!record) record = { name:user.name, gender:user.gender, role:user.role, date:today, checkIn:time, checkOut:"", status:"Present", notes:"" }, attendance.push(record);
+      else record.checkIn = time;
+      localStorage.setItem("attendance", JSON.stringify(attendance));
+      showMessage(attendanceMsg, `✅ Checked in at ${time}.`, "success");
+      renderAttendance();
+    });
+
+    // Check Out
+    checkOutBtn.addEventListener("click", () => {
+      if (!user) return showMessage(attendanceMsg, "Save your info first.", "error");
+      const today = new Date().toISOString().split("T")[0];
+      const time = new Date().toLocaleTimeString();
+      let record = attendance.find(r => r.name === user.name && r.date === today);
+      if (!record || !record.checkIn) return showMessage(attendanceMsg, "Check in first.", "error");
+      if (record.checkOut) return showMessage(attendanceMsg, "Already checked out.", "info");
+      record.checkOut = time;
+      localStorage.setItem("attendance", JSON.stringify(attendance));
+      showMessage(attendanceMsg, `👋 Checked out at ${time}.`, "success");
+      renderAttendance();
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("user");
+      window.location.href = "login.html";
+    });
+
+    document.addEventListener("DOMContentLoaded", renderAttendance);
+  </script>
+</body>
+</html>

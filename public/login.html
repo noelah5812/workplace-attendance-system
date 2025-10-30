@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Loader styling (same as register) */
+    .loader-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s, opacity 0.3s ease;
+    }
+
+    .loader-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid #ddd;
+      border-top-color: #007BFF;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loader-text {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #007BFF;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <form id="login-form">
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <div id="login-message" style="margin-top: 10px; text-align:center;"></div>
+    <div class="footer-link">
+      Don’t have an account? <a href="register.html">Register here</a>
+    </div>
+  </div>
+
+  <!-- Loader Overlay -->
+  <div class="loader-overlay" id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text">Verifying your credentials...</div>
+  </div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const msg = document.getElementById('login-message');
+    const loader = document.getElementById('loader');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        msg.textContent = '⚠️ Please fill in all fields.';
+        msg.style.color = 'red';
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (!user) {
+        msg.textContent = '❌ Invalid username or password.';
+        msg.style.color = 'red';
+        return;
+      }
+
+      // Show loader
+      loader.classList.add('active');
+
+      setTimeout(() => {
+        loader.classList.remove('active');
+        msg.textContent = '✅ Login successful!';
+        msg.style.color = 'green';
+
+        // Save user session
+        localStorage.setItem('currentUser', JSON.stringify(user));
+
+        // Redirect based on role
+        setTimeout(() => {
+          if (user.role === 'hr') window.location.href = 'hr_dashboard.html';
+          else if (user.role === 'staff') window.location.href = 'staff_dashboard.html';
+          else if (user.role === 'attachee') window.location.href = 'attachee_dashboard.html';
+          else if (user.role === 'intern') window.location.href = 'intern_dashboard.html';
+          else window.location.href = 'index.html';
+        }, 1000);
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
